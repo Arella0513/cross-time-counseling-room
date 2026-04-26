@@ -1,0 +1,521 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Cross-Time Virtual Counseling Room</title>
+  <style>
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      font-family: "Segoe UI", Arial, sans-serif;
+      background: linear-gradient(135deg, #e8f6ef, #f8fbf4);
+      color: #1f3d35;
+    }
+
+    .page {
+      min-height: 100vh;
+      padding: 28px;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+
+    .room {
+      width: 100%;
+      max-width: 1180px;
+      background: rgba(255, 255, 255, 0.9);
+      border-radius: 28px;
+      box-shadow: 0 18px 45px rgba(54, 94, 74, 0.18);
+      overflow: hidden;
+      border: 3px solid #b7dccc;
+    }
+
+    .hero {
+      position: relative;
+      padding: 34px 42px;
+      background: linear-gradient(120deg, #c8ead8, #edf8e8);
+      overflow: hidden;
+    }
+
+    .hero::before,
+    .hero::after {
+      content: "";
+      position: absolute;
+      width: 170px;
+      height: 170px;
+      border-radius: 50%;
+      background: rgba(96, 154, 126, 0.15);
+    }
+
+    .hero::before {
+      top: -60px;
+      right: 80px;
+    }
+
+    .hero::after {
+      bottom: -90px;
+      left: 120px;
+    }
+
+    .badge {
+      display: inline-block;
+      background: #fff7b0;
+      color: #49612f;
+      padding: 8px 16px;
+      border-radius: 999px;
+      font-weight: 700;
+      margin-bottom: 14px;
+      position: relative;
+      z-index: 1;
+    }
+
+    h1 {
+      margin: 0;
+      font-size: 42px;
+      color: #23624f;
+      position: relative;
+      z-index: 1;
+    }
+
+    .subtitle {
+      margin-top: 14px;
+      max-width: 840px;
+      font-size: 20px;
+      line-height: 1.55;
+      position: relative;
+      z-index: 1;
+    }
+
+    .content {
+      display: grid;
+      grid-template-columns: 360px 1fr;
+      gap: 28px;
+      padding: 32px;
+    }
+
+    .panel {
+      background: #f4fbf6;
+      border: 2px solid #c9e6d6;
+      border-radius: 24px;
+      padding: 22px;
+    }
+
+    .panel h2 {
+      margin: 0 0 16px;
+      font-size: 24px;
+      color: #28705b;
+    }
+
+    .therapist-card {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      padding: 14px;
+      margin-bottom: 14px;
+      border: 2px solid transparent;
+      border-radius: 18px;
+      background: #ffffff;
+      cursor: pointer;
+      transition: 0.25s;
+    }
+
+    .therapist-card:hover,
+    .therapist-card.active {
+      border-color: #59a986;
+      transform: translateY(-2px);
+      box-shadow: 0 8px 18px rgba(60, 130, 100, 0.16);
+    }
+
+    .avatar {
+      width: 72px;
+      height: 72px;
+      border-radius: 18px;
+      overflow: hidden;
+      flex-shrink: 0;
+      background: linear-gradient(135deg, #daf2df, #fdf8cf);
+      border: 2px solid #d8eadf;
+    }
+
+    .avatar img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: block;
+    }
+
+    .therapist-name {
+      font-weight: 800;
+      font-size: 18px;
+      color: #24483e;
+    }
+
+    .therapist-tag {
+      margin-top: 5px;
+      font-size: 14px;
+      color: #638176;
+    }
+
+    .question-list button {
+      display: block;
+      width: 100%;
+      margin-bottom: 12px;
+      padding: 14px 16px;
+      text-align: left;
+      border: none;
+      border-radius: 16px;
+      background: #e3f3ea;
+      color: #264c40;
+      font-size: 16px;
+      cursor: pointer;
+      transition: 0.2s;
+    }
+
+    .question-list button:hover {
+      background: #cbe9d9;
+      transform: translateX(4px);
+    }
+
+    .chat-area {
+      min-height: 560px;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .chat-window {
+      flex: 1;
+      background: linear-gradient(180deg, #ffffff, #f6fbf7);
+      border: 2px solid #c9e6d6;
+      border-radius: 24px;
+      padding: 24px;
+      overflow-y: auto;
+    }
+
+    .message {
+      max-width: 82%;
+      padding: 15px 18px;
+      margin-bottom: 16px;
+      border-radius: 20px;
+      line-height: 1.6;
+      font-size: 17px;
+      animation: fadeIn 0.35s ease;
+    }
+
+    .student {
+      margin-left: auto;
+      background: #d9ecff;
+      color: #153957;
+      border-bottom-right-radius: 6px;
+    }
+
+    .poet {
+      background: #eaf6df;
+      color: #24462d;
+      border-bottom-left-radius: 6px;
+    }
+
+    .speaker {
+      font-weight: 800;
+      display: block;
+      margin-bottom: 5px;
+    }
+
+    .input-row {
+      display: flex;
+      gap: 12px;
+      margin-top: 16px;
+    }
+
+    input {
+      flex: 1;
+      padding: 15px 18px;
+      border: 2px solid #c9e6d6;
+      border-radius: 16px;
+      font-size: 16px;
+      outline: none;
+    }
+
+    input:focus {
+      border-color: #5aa886;
+    }
+
+    .send-btn,
+    .reset-btn {
+      border: none;
+      border-radius: 16px;
+      padding: 0 22px;
+      font-size: 16px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: 0.2s;
+    }
+
+    .send-btn {
+      background: #4c9b7b;
+      color: white;
+    }
+
+    .reset-btn {
+      background: #fff0b8;
+      color: #6b5a16;
+    }
+
+    .send-btn:hover,
+    .reset-btn:hover {
+      transform: translateY(-2px);
+      filter: brightness(0.98);
+    }
+
+    .teaching-guide {
+      margin-top: 18px;
+      background: #fffaf0;
+      border: 2px solid #f2dfac;
+      border-radius: 20px;
+      padding: 18px 20px;
+      color: #5b4b1c;
+    }
+
+    .teaching-guide-title {
+      font-weight: 800;
+      font-size: 18px;
+      margin-bottom: 10px;
+    }
+
+    .teaching-guide p {
+      margin: 8px 0;
+      line-height: 1.55;
+      font-size: 16px;
+    }
+
+    .highlight-question {
+      margin-top: 12px;
+      padding: 12px 14px;
+      background: #ffffff;
+      border-left: 5px solid #d6a93a;
+      border-radius: 12px;
+      font-weight: 700;
+      color: #4a3b11;
+    }
+
+    .footer-line {
+      padding: 18px 32px 28px;
+      text-align: center;
+      color: #527569;
+      font-size: 17px;
+      font-weight: 600;
+    }
+
+    @keyframes fadeIn {
+      from {
+        opacity: 0;
+        transform: translateY(8px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    @media (max-width: 900px) {
+      .content {
+        grid-template-columns: 1fr;
+      }
+
+      h1 {
+        font-size: 32px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="page">
+    <main class="room">
+      <section class="hero">
+        <div class="badge">Counseling Room · Nature Therapy · Teacher: Yang Mingyue</div>
+        <h1>Cross-Time Virtual Counseling Room</h1>
+        <p class="subtitle">
+          Welcome! Today, Tao Yuanming and Henry David Thoreau will travel across time and space to help us understand how returning to nature can bring peace, freedom, and personal fulfillment.
+        </p>
+      </section>
+
+      <section class="content">
+        <aside class="panel">
+          <h2>Choose Your Nature Therapist</h2>
+
+          <div class="therapist-card active" onclick="chooseTherapist('tao')" id="taoCard">
+            <div class="avatar"><img src="tao-yuanming.jpg" alt="Tao Yuanming" /></div>
+            <div>
+              <div class="therapist-name">Tao Yuanming</div>
+              <div class="therapist-tag">Solitary reflection · Spiritual independence</div>
+            </div>
+          </div>
+
+          <div class="therapist-card" onclick="chooseTherapist('thoreau')" id="thoreauCard">
+            <div class="avatar"><img src="thoreau.jpg" alt="Henry David Thoreau" /></div>
+            <div>
+              <div class="therapist-name">Henry David Thoreau</div>
+              <div class="therapist-tag">At one with nature · Deliberate living</div>
+            </div>
+          </div>
+
+          <h2 style="margin-top: 24px;">Choose a Question</h2>
+          <div class="question-list">
+            <button onclick="askPreset('stress')">I feel stressed about my studies.</button>
+            <button onclick="askPreset('future')">I feel lost about my future.</button>
+            <button onclick="askPreset('nature')">How can nature heal us?</button>
+            <button onclick="askPreset('success')">What does true success mean?</button>
+            <button onclick="askPreset('advice')">What advice would you give to modern teenagers?</button>
+          </div>
+        </aside>
+
+        <section class="chat-area">
+          <div class="chat-window" id="chatWindow">
+            <div class="message poet">
+              <span class="speaker">System</span>
+              Please choose a nature therapist and start your dialogue.
+            </div>
+          </div>
+
+          <div class="input-row">
+            <input id="studentInput" placeholder="Type your problem here, for example: I feel anxious about exams..." onkeydown="handleEnter(event)" />
+            <button class="send-btn" onclick="sendCustom()">Send</button>
+            <button class="reset-btn" onclick="resetChat()">Reset</button>
+          </div>
+                  <div class="teaching-guide">
+            <div class="teaching-guide-title">Classroom Thinking Task</div>
+            <p>After listening to the two poets, compare their ideas about returning to nature.</p>
+            <p><strong>Tao Yuanming:</strong> nature as a peaceful home for spiritual independence.</p>
+            <p><strong>Thoreau:</strong> nature as a place for deliberate living and self-discovery.</p>
+            <div class="highlight-question">
+              Guiding Question: Is returning to nature an escape from reality, or a wiser way to face life?
+            </div>
+          </div>
+        </section>
+      </section>
+
+      <div class="footer-line">
+        Returning to nature is not escaping from life, but finding a clearer and more peaceful way to live.
+      </div>
+    </main>
+  </div>
+
+  <script>
+    let currentTherapist = 'tao';
+
+    const names = {
+      tao: 'Tao Yuanming',
+      thoreau: 'Henry David Thoreau'
+    };
+
+    const presetQuestions = {
+      stress: 'I feel stressed about my studies.',
+      future: 'I feel lost about my future.',
+      nature: 'How can nature heal us?',
+      success: 'What does true success mean?',
+      advice: 'What advice would you give to modern teenagers?'
+    };
+
+    const replies = {
+      tao: {
+        stress: 'When I returned to the countryside, I learned to free my heart from endless pressure. Study is important, but inner peace is also necessary. Slow down, do your best, and keep a quiet heart like a chrysanthemum blooming beside the fence.',
+        future: 'I once left official life because I wanted to follow my true self. Your future should not be decided only by fame or wealth. Ask yourself: What kind of life allows me to remain honest, peaceful, and free?',
+        nature: 'Nature heals us by making life simple again. A field, a flower, or a mountain path can remind us that happiness may come from ordinary moments, not from endless competition.',
+        success: 'True success is not always a high position or public praise. For me, it means living simply, keeping my spirit independent, and finding joy in a peaceful life.',
+        advice: 'Do not lose yourself in noise and comparison. Keep a simple heart, stay close to nature, and learn to find beauty in daily life.'
+      },
+      thoreau: {
+        stress: 'I went to the woods because I wished to live deliberately. When you feel stressed, step back and ask: What is truly necessary? You may discover that a simpler life gives you stronger courage.',
+        future: 'Your future should be built by conscious choices, not by blind imitation. Go confidently in the direction of your dreams, but remember to listen to your own inner voice.',
+        nature: 'Nature heals us because it teaches us to observe, to think, and to live deliberately. In the woods, I found not only trees and lakes, but also a clearer understanding of myself.',
+        success: 'True success means living according to your own principles. A person is rich not by having many things, but by needing less and thinking more deeply.',
+        advice: 'Do not follow the crowd without thinking. Simplify your life, protect your independent mind, and try to live each day with purpose.'
+      }
+    };
+
+    function chooseTherapist(person) {
+      currentTherapist = person;
+      document.getElementById('taoCard').classList.toggle('active', person === 'tao');
+      document.getElementById('thoreauCard').classList.toggle('active', person === 'thoreau');
+      addMessage('poet', 'System', `You are now talking with ${names[person]}.`);
+    }
+
+    function askPreset(type) {
+      addMessage('student', 'Student', presetQuestions[type]);
+      setTimeout(() => {
+        addTypingMessage(names[currentTherapist], replies[currentTherapist][type]);
+      }, 450);
+    }
+
+    function sendCustom() {
+      const input = document.getElementById('studentInput');
+      const text = input.value.trim();
+      if (!text) return;
+      addMessage('student', 'Student', text);
+      input.value = '';
+
+      const type = detectType(text);
+      setTimeout(() => {
+        addTypingMessage(names[currentTherapist], replies[currentTherapist][type]);
+      }, 450);
+    }
+
+    function detectType(text) {
+      const lower = text.toLowerCase();
+      if (lower.includes('exam') || lower.includes('study') || lower.includes('stress') || lower.includes('pressure') || lower.includes('anxious')) return 'stress';
+      if (lower.includes('future') || lower.includes('lost') || lower.includes('choice') || lower.includes('dream')) return 'future';
+      if (lower.includes('nature') || lower.includes('heal') || lower.includes('peace') || lower.includes('relax')) return 'nature';
+      if (lower.includes('success') || lower.includes('wealth') || lower.includes('fame') || lower.includes('achievement')) return 'success';
+      return 'advice';
+    }
+
+    function addMessage(type, speaker, text) {
+      const chat = document.getElementById('chatWindow');
+      const message = document.createElement('div');
+      message.className = `message ${type}`;
+      message.innerHTML = `<span class="speaker">${speaker}</span>${text}`;
+      chat.appendChild(message);
+      chat.scrollTop = chat.scrollHeight;
+    }
+
+    function addTypingMessage(speaker, text) {
+      const chat = document.getElementById('chatWindow');
+      const message = document.createElement('div');
+      message.className = 'message poet';
+      message.innerHTML = `<span class="speaker">${speaker}</span><span class="typing-text"></span>`;
+      chat.appendChild(message);
+
+      const typingText = message.querySelector('.typing-text');
+      let index = 0;
+      const speed = 28;
+
+      const timer = setInterval(() => {
+        typingText.textContent += text.charAt(index);
+        index++;
+        chat.scrollTop = chat.scrollHeight;
+
+        if (index >= text.length) {
+          clearInterval(timer);
+        }
+      }, speed);
+    }
+
+    function resetChat() {
+      document.getElementById('chatWindow').innerHTML = `
+        <div class="message poet">
+          <span class="speaker">System</span>
+          Please choose a nature therapist and start your dialogue.
+        </div>
+      `;
+    }
+
+    function handleEnter(event) {
+      if (event.key === 'Enter') {
+        sendCustom();
+      }
+    }
+  </script>
+</body>
+</html>
