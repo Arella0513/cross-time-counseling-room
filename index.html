@@ -5,9 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Cross-Time Virtual Counseling Room</title>
   <style>
-    * {
-      box-sizing: border-box;
-    }
+    * { box-sizing: border-box; }
 
     body {
       margin: 0;
@@ -41,26 +39,6 @@
       overflow: hidden;
     }
 
-    .hero::before,
-    .hero::after {
-      content: "";
-      position: absolute;
-      width: 170px;
-      height: 170px;
-      border-radius: 50%;
-      background: rgba(96, 154, 126, 0.15);
-    }
-
-    .hero::before {
-      top: -60px;
-      right: 80px;
-    }
-
-    .hero::after {
-      bottom: -90px;
-      left: 120px;
-    }
-
     .badge {
       display: inline-block;
       background: #fff7b0;
@@ -69,16 +47,12 @@
       border-radius: 999px;
       font-weight: 700;
       margin-bottom: 14px;
-      position: relative;
-      z-index: 1;
     }
 
     h1 {
       margin: 0;
       font-size: 42px;
       color: #23624f;
-      position: relative;
-      z-index: 1;
     }
 
     .subtitle {
@@ -86,8 +60,6 @@
       max-width: 840px;
       font-size: 20px;
       line-height: 1.55;
-      position: relative;
-      z-index: 1;
     }
 
     .content {
@@ -238,15 +210,14 @@
       outline: none;
     }
 
-    input:focus {
-      border-color: #5aa886;
-    }
+    input:focus { border-color: #5aa886; }
 
     .send-btn,
+    .voice-btn,
     .reset-btn {
       border: none;
       border-radius: 16px;
-      padding: 0 22px;
+      padding: 0 20px;
       font-size: 16px;
       font-weight: 700;
       cursor: pointer;
@@ -258,12 +229,18 @@
       color: white;
     }
 
+    .voice-btn {
+      background: #7eb6d9;
+      color: white;
+    }
+
     .reset-btn {
       background: #fff0b8;
       color: #6b5a16;
     }
 
     .send-btn:hover,
+    .voice-btn:hover,
     .reset-btn:hover {
       transform: translateY(-2px);
       filter: brightness(0.98);
@@ -309,27 +286,17 @@
     }
 
     @keyframes fadeIn {
-      from {
-        opacity: 0;
-        transform: translateY(8px);
-      }
-      to {
-        opacity: 1;
-        transform: translateY(0);
-      }
+      from { opacity: 0; transform: translateY(8px); }
+      to { opacity: 1; transform: translateY(0); }
     }
 
     @media (max-width: 900px) {
-      .content {
-        grid-template-columns: 1fr;
-      }
-
-      h1 {
-        font-size: 32px;
-      }
+      .content { grid-template-columns: 1fr; }
+      h1 { font-size: 32px; }
     }
   </style>
 </head>
+
 <body>
   <div class="page">
     <main class="room">
@@ -380,11 +347,13 @@
           </div>
 
           <div class="input-row">
-            <input id="studentInput" placeholder="Type your problem here, for example: I feel anxious about exams..." onkeydown="handleEnter(event)" />
+            <input id="studentInput" placeholder="Type or speak your problem here..." onkeydown="handleEnter(event)" />
             <button class="send-btn" onclick="sendCustom()">Send</button>
+            <button class="voice-btn" onclick="startVoiceInput()">🎤 Speak</button>
             <button class="reset-btn" onclick="resetChat()">Reset</button>
           </div>
-                  <div class="teaching-guide">
+
+          <div class="teaching-guide">
             <div class="teaching-guide-title">Classroom Thinking Task</div>
             <p>After listening to the two poets, compare their ideas about returning to nature.</p>
             <p><strong>Tao Yuanming:</strong> nature as a peaceful home for spiritual independence.</p>
@@ -437,8 +406,11 @@
 
     function chooseTherapist(person) {
       currentTherapist = person;
+      speechSynthesis.cancel();
+
       document.getElementById('taoCard').classList.toggle('active', person === 'tao');
       document.getElementById('thoreauCard').classList.toggle('active', person === 'thoreau');
+
       addMessage('poet', 'System', `You are now talking with ${names[person]}.`);
     }
 
@@ -453,10 +425,12 @@
       const input = document.getElementById('studentInput');
       const text = input.value.trim();
       if (!text) return;
+
       addMessage('student', 'Student', text);
       input.value = '';
 
       const type = detectType(text);
+
       setTimeout(() => {
         addTypingMessage(names[currentTherapist], replies[currentTherapist][type]);
       }, 450);
@@ -464,10 +438,38 @@
 
     function detectType(text) {
       const lower = text.toLowerCase();
-      if (lower.includes('exam') || lower.includes('study') || lower.includes('stress') || lower.includes('pressure') || lower.includes('anxious')) return 'stress';
-      if (lower.includes('future') || lower.includes('lost') || lower.includes('choice') || lower.includes('dream')) return 'future';
-      if (lower.includes('nature') || lower.includes('heal') || lower.includes('peace') || lower.includes('relax')) return 'nature';
-      if (lower.includes('success') || lower.includes('wealth') || lower.includes('fame') || lower.includes('achievement')) return 'success';
+
+      if (
+        lower.includes('exam') ||
+        lower.includes('study') ||
+        lower.includes('stress') ||
+        lower.includes('pressure') ||
+        lower.includes('anxious') ||
+        lower.includes('nervous')
+      ) return 'stress';
+
+      if (
+        lower.includes('future') ||
+        lower.includes('lost') ||
+        lower.includes('choice') ||
+        lower.includes('dream') ||
+        lower.includes('confused')
+      ) return 'future';
+
+      if (
+        lower.includes('nature') ||
+        lower.includes('heal') ||
+        lower.includes('peace') ||
+        lower.includes('relax')
+      ) return 'nature';
+
+      if (
+        lower.includes('success') ||
+        lower.includes('wealth') ||
+        lower.includes('fame') ||
+        lower.includes('achievement')
+      ) return 'success';
+
       return 'advice';
     }
 
@@ -481,6 +483,8 @@
     }
 
     function addTypingMessage(speaker, text) {
+      speechSynthesis.cancel();
+
       const chat = document.getElementById('chatWindow');
       const message = document.createElement('div');
       message.className = 'message poet';
@@ -498,11 +502,70 @@
 
         if (index >= text.length) {
           clearInterval(timer);
+          speak(text);
         }
       }, speed);
     }
 
+    function speak(text) {
+      speechSynthesis.cancel();
+
+      const utterance = new SpeechSynthesisUtterance(text);
+      utterance.lang = 'en-US';
+
+      if (currentTherapist === 'tao') {
+        utterance.pitch = 0.75;
+        utterance.rate = 0.82;
+      } else {
+        utterance.pitch = 1.25;
+        utterance.rate = 0.95;
+      }
+
+      const voices = speechSynthesis.getVoices();
+      const englishVoices = voices.filter(v => v.lang.includes('en'));
+
+      if (englishVoices.length > 0) {
+        if (currentTherapist === 'tao') {
+          utterance.voice = englishVoices[0];
+        } else {
+          utterance.voice = englishVoices[1] || englishVoices[0];
+        }
+      }
+
+      speechSynthesis.speak(utterance);
+    }
+
+    function startVoiceInput() {
+      const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+
+      if (!SpeechRecognition) {
+        alert('Sorry, your browser does not support voice input. Please use Chrome or Edge.');
+        return;
+      }
+
+      const recognition = new SpeechRecognition();
+      recognition.lang = 'en-US';
+      recognition.interimResults = false;
+      recognition.maxAlternatives = 1;
+
+      addMessage('poet', 'System', 'Listening... Please speak in English.');
+
+      recognition.start();
+
+      recognition.onresult = function(event) {
+        const spokenText = event.results[0][0].transcript;
+        document.getElementById('studentInput').value = spokenText;
+        sendCustom();
+      };
+
+      recognition.onerror = function() {
+        addMessage('poet', 'System', 'Voice input failed. Please try again.');
+      };
+    }
+
     function resetChat() {
+      speechSynthesis.cancel();
+
       document.getElementById('chatWindow').innerHTML = `
         <div class="message poet">
           <span class="speaker">System</span>
@@ -516,6 +579,8 @@
         sendCustom();
       }
     }
+
+    window.speechSynthesis.onvoiceschanged = function() {};
   </script>
 </body>
 </html>
