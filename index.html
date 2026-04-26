@@ -4,6 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Cross-Time Virtual Counseling Room</title>
+
   <style>
     * { box-sizing: border-box; }
 
@@ -33,10 +34,8 @@
     }
 
     .hero {
-      position: relative;
       padding: 34px 42px;
       background: linear-gradient(120deg, #c8ead8, #edf8e8);
-      overflow: hidden;
     }
 
     .badge {
@@ -117,6 +116,22 @@
       height: 100%;
       object-fit: cover;
       display: block;
+    }
+
+    .speaking {
+      animation: glow 1s infinite alternate;
+    }
+
+    @keyframes glow {
+      from { box-shadow: 0 0 5px #7ec7a5; }
+      to { box-shadow: 0 0 24px #4c9b7b; }
+    }
+
+    .speaking-text {
+      font-size: 13px;
+      color: #4c9b7b;
+      margin-top: 8px;
+      font-weight: 700;
     }
 
     .therapist-name {
@@ -210,8 +225,6 @@
       outline: none;
     }
 
-    input:focus { border-color: #5aa886; }
-
     .send-btn,
     .voice-btn,
     .reset-btn {
@@ -239,13 +252,6 @@
       color: #6b5a16;
     }
 
-    .send-btn:hover,
-    .voice-btn:hover,
-    .reset-btn:hover {
-      transform: translateY(-2px);
-      filter: brightness(0.98);
-    }
-
     .teaching-guide {
       margin-top: 18px;
       background: #fffaf0;
@@ -261,12 +267,6 @@
       margin-bottom: 10px;
     }
 
-    .teaching-guide p {
-      margin: 8px 0;
-      line-height: 1.55;
-      font-size: 16px;
-    }
-
     .highlight-question {
       margin-top: 12px;
       padding: 12px 14px;
@@ -274,7 +274,6 @@
       border-left: 5px solid #d6a93a;
       border-radius: 12px;
       font-weight: 700;
-      color: #4a3b11;
     }
 
     .footer-line {
@@ -313,7 +312,9 @@
           <h2>Choose Your Nature Therapist</h2>
 
           <div class="therapist-card active" onclick="chooseTherapist('tao')" id="taoCard">
-            <div class="avatar"><img src="tao-yuanming.jpg" alt="Tao Yuanming" /></div>
+            <div class="avatar">
+              <img src="tao-yuanming.jpg" alt="Tao Yuanming">
+            </div>
             <div>
               <div class="therapist-name">Tao Yuanming</div>
               <div class="therapist-tag">Solitary reflection · Spiritual independence</div>
@@ -321,7 +322,9 @@
           </div>
 
           <div class="therapist-card" onclick="chooseTherapist('thoreau')" id="thoreauCard">
-            <div class="avatar"><img src="thoreau.jpg" alt="Henry David Thoreau" /></div>
+            <div class="avatar">
+              <img src="thoreau.jpg" alt="Henry David Thoreau">
+            </div>
             <div>
               <div class="therapist-name">Henry David Thoreau</div>
               <div class="therapist-tag">At one with nature · Deliberate living</div>
@@ -347,7 +350,7 @@
           </div>
 
           <div class="input-row">
-            <input id="studentInput" placeholder="Type or speak your problem here..." onkeydown="handleEnter(event)" />
+            <input id="studentInput" placeholder="Type or speak your problem here..." onkeydown="handleEnter(event)">
             <button class="send-btn" onclick="sendCustom()">Send</button>
             <button class="voice-btn" onclick="startVoiceInput()">🎤 Speak</button>
             <button class="reset-btn" onclick="resetChat()">Reset</button>
@@ -430,7 +433,6 @@
       input.value = '';
 
       const type = detectType(text);
-
       setTimeout(() => {
         addTypingMessage(names[currentTherapist], replies[currentTherapist][type]);
       }, 450);
@@ -439,36 +441,10 @@
     function detectType(text) {
       const lower = text.toLowerCase();
 
-      if (
-        lower.includes('exam') ||
-        lower.includes('study') ||
-        lower.includes('stress') ||
-        lower.includes('pressure') ||
-        lower.includes('anxious') ||
-        lower.includes('nervous')
-      ) return 'stress';
-
-      if (
-        lower.includes('future') ||
-        lower.includes('lost') ||
-        lower.includes('choice') ||
-        lower.includes('dream') ||
-        lower.includes('confused')
-      ) return 'future';
-
-      if (
-        lower.includes('nature') ||
-        lower.includes('heal') ||
-        lower.includes('peace') ||
-        lower.includes('relax')
-      ) return 'nature';
-
-      if (
-        lower.includes('success') ||
-        lower.includes('wealth') ||
-        lower.includes('fame') ||
-        lower.includes('achievement')
-      ) return 'success';
+      if (lower.includes('exam') || lower.includes('study') || lower.includes('stress') || lower.includes('pressure') || lower.includes('anxious') || lower.includes('nervous')) return 'stress';
+      if (lower.includes('future') || lower.includes('lost') || lower.includes('choice') || lower.includes('dream') || lower.includes('confused')) return 'future';
+      if (lower.includes('nature') || lower.includes('heal') || lower.includes('peace') || lower.includes('relax')) return 'nature';
+      if (lower.includes('success') || lower.includes('wealth') || lower.includes('fame') || lower.includes('achievement')) return 'success';
 
       return 'advice';
     }
@@ -488,8 +464,17 @@
       const chat = document.getElementById('chatWindow');
       const message = document.createElement('div');
       message.className = 'message poet';
-      message.innerHTML = `<span class="speaker">${speaker}</span><span class="typing-text"></span>`;
+
+      message.innerHTML = `
+        <span class="speaker">${speaker}</span>
+        <span class="typing-text"></span>
+        <div class="speaking-text">Speaking...</div>
+      `;
+
       chat.appendChild(message);
+
+      const avatarId = currentTherapist === 'tao' ? 'taoCard' : 'thoreauCard';
+      document.getElementById(avatarId).classList.add('speaking');
 
       const typingText = message.querySelector('.typing-text');
       let index = 0;
@@ -502,12 +487,12 @@
 
         if (index >= text.length) {
           clearInterval(timer);
-          speak(text);
+          speak(text, avatarId, message);
         }
       }, speed);
     }
 
-    function speak(text) {
+    function speak(text, avatarId, message) {
       speechSynthesis.cancel();
 
       const utterance = new SpeechSynthesisUtterance(text);
@@ -531,6 +516,14 @@
           utterance.voice = englishVoices[1] || englishVoices[0];
         }
       }
+
+      utterance.onend = function() {
+        document.getElementById(avatarId).classList.remove('speaking');
+        const speakingText = message.querySelector('.speaking-text');
+        if (speakingText) {
+          speakingText.innerText = 'Finished speaking';
+        }
+      };
 
       speechSynthesis.speak(utterance);
     }
@@ -565,6 +558,9 @@
 
     function resetChat() {
       speechSynthesis.cancel();
+
+      document.getElementById('taoCard').classList.remove('speaking');
+      document.getElementById('thoreauCard').classList.remove('speaking');
 
       document.getElementById('chatWindow').innerHTML = `
         <div class="message poet">
